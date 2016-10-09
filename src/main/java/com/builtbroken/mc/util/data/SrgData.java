@@ -30,6 +30,9 @@ public class SrgData
         srg = split[0];
         name = split[1];
         //side = Integer.parseInt(split[2]); not used
-        desc = split[3];
+        if(split.length > 3)
+        {
+            desc = split[3];
+        }
     }
 }

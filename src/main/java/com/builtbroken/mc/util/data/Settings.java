@@ -12,7 +12,9 @@ import java.util.HashMap;
 public final class Settings
 {
     /** Folder to do all actions inside, root folder */
-    public File runDirectory = new File("");
+    public File runDirectory;
+    /** Folder to do all actions inside, root folder */
+    public File logDirectory;
     /** File to read from */
     public File readFile = null;
     /** File to save to */
@@ -50,10 +52,15 @@ public final class Settings
                 throw new IllegalArgumentException("Invalid run direction: " + runDirectory);
             }
         }
+        else
+        {
+            runDirectory = new File(System.getProperty("user.dir"), "minecraftErrorLogUtility");
+        }
+        logDirectory = new File(runDirectory, "logs");
 
         if (map.containsKey("loadPath"))
         {
-            readFile = parseFile(runDirectory, map.get("readPath"));
+            readFile = parseFile(runDirectory, map.get("loadPath"));
             if (!runDirectory.exists())
             {
                 throw new IllegalArgumentException("Invalid read path: " + runDirectory);
@@ -72,7 +79,7 @@ public final class Settings
 
         if (map.containsKey("overrideSave"))
         {
-            autoRun = isTrue(map.get("overrideSave"));
+            overrideSave = isTrue(map.get("overrideSave"));
         }
 
         if (map.containsKey("autoRun"))
@@ -83,6 +90,7 @@ public final class Settings
 
     /**
      * Parses a string into a file path
+     *
      * @param value - file path
      * @return file
      */
@@ -100,9 +108,10 @@ public final class Settings
      */
     private File parseFile(File root, String value)
     {
-        if (value.startsWith(File.pathSeparator))
+        if (value.startsWith("."))
         {
-            return new File(root, value);
+            String nv = value.replaceFirst(".", "");
+            return new File(root, nv);
         }
         else
         {
@@ -132,7 +141,7 @@ public final class Settings
 
     public boolean shouldAutoParse()
     {
-        return hasRequiredFiles();
+        return hasRequiredFiles() && autoRun;
     }
 
     public boolean hasReadFile()
@@ -142,7 +151,7 @@ public final class Settings
 
     public boolean hasValidMCPConfigs()
     {
-        if(!hasValidatedMCPConfig)
+        if (!hasValidatedMCPConfig)
         {
             validateMCPConfigFile();
         }
@@ -156,7 +165,7 @@ public final class Settings
 
     public void validateMCPConfigFile()
     {
-        if(mcpConfigDirectory != null && mcpConfigDirectory.exists())
+        if (mcpConfigDirectory != null && mcpConfigDirectory.exists())
         {
             mcpMethodsFile = new File(mcpConfigDirectory, "methods.csv");
             mcpFieldsFile = new File(mcpConfigDirectory, "fields.csv");
@@ -177,6 +186,7 @@ public final class Settings
 
     /**
      * Sets the MCP config file and resets any data attached to said file
+     *
      * @param mcpConfigDirectory - file
      */
     public void setMcpConfigDirectory(File mcpConfigDirectory)

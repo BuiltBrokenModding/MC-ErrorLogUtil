@@ -26,10 +26,14 @@ public class LogParser
     //Lines read from file
     private List<String> lines = new ArrayList();
 
+    private List<String> unknownEntries = new ArrayList();
+
     public int stringsReplaced = 0;
     public int linesEdited = 0;
+
     /**
      * Creates a new parsing object
+     *
      * @param file - file to parse
      */
     public LogParser(File file)
@@ -59,8 +63,10 @@ public class LogParser
             e.printStackTrace();
         }
     }
+
     /**
      * Replaces the lines srg values
+     *
      * @param data - MPC data map
      */
     public void replaceSRG(MCPData data)
@@ -69,23 +75,27 @@ public class LogParser
         linesEdited = 0;
 
         ListIterator<String> it = lines.listIterator();
-        while(it.hasNext())
+        while (it.hasNext())
         {
             String line = it.next();
-            if(line.contains("."))
+            int index = line.indexOf("func_");
+            if (index > -1)
             {
                 String editedLine = line;
-                String[] split = line.split(".");
-                for(String sp : split)
+
+                String entry = line.substring(index, line.indexOf("("));
+                String convert = data.convertSrgMethod(entry);
+                if(!entry.equals(convert))
                 {
-                    String convert = data.convertSrgMethod(sp);
-                    if(!convert.equals(sp))
-                    {
-                        stringsReplaced++;
-                        editedLine.replace(sp, convert);
-                    }
+                    stringsReplaced++;
+                    editedLine = editedLine.replace(entry, convert);
                 }
-                if(!editedLine.equals(line))
+                else if(!unknownEntries.contains(line))
+                {
+                    unknownEntries.add(line);
+                }
+                //TODO more editing?
+                if (!editedLine.equals(line))
                 {
                     linesEdited++;
                     it.set(editedLine);
@@ -98,5 +108,11 @@ public class LogParser
     {
         Path file = Paths.get(saveFile.toURI());
         Files.write(file, lines, Charset.forName("UTF-8"));
+    }
+
+    public void saveLog(File saveFile) throws IOException
+    {
+        Path file = Paths.get(saveFile.toURI());
+        Files.write(file, unknownEntries, Charset.forName("UTF-8"));
     }
 }

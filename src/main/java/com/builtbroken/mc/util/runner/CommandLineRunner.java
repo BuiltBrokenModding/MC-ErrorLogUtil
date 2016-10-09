@@ -42,6 +42,21 @@ public class CommandLineRunner extends Runner
                     {
                         break;
                     }
+                    else if(!settings.getMcpConfigDirectory().exists())
+                    {
+                        System.out.println("\tFile: " + settings.getMcpConfigDirectory() + " does not exist");
+                    }
+                    else
+                    {
+                        if(settings.mcpFieldsFile == null || !settings.mcpFieldsFile.exists())
+                        {
+                            System.out.println("\tMissing 'fields.csv' file");
+                        }
+                        if(settings.mcpMethodsFile == null || !settings.mcpMethodsFile.exists())
+                        {
+                            System.out.println("\tMissing 'methods.csv' file");
+                        }
+                    }
 
                     //Tell user it was wrong and ask if the user wants to try again
                     System.out.println("\tInvalid config file try again? [Y/N]");

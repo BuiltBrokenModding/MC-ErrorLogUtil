@@ -1,6 +1,8 @@
 package com.builtbroken.mc.util;
 
 import com.builtbroken.mc.util.data.Settings;
+import com.builtbroken.mc.util.imp.IRunner;
+import com.builtbroken.mc.util.runner.AutoRunner;
 import com.builtbroken.mc.util.runner.CommandLineRunner;
 
 import java.util.HashMap;
@@ -23,6 +25,7 @@ public final class MCErrorLogUtil
     {
         try
         {
+            System.out.println("Loading settings from args...");
             final Settings settings = new Settings();
 
             //If arguments exist load them into the settings object
@@ -30,21 +33,33 @@ public final class MCErrorLogUtil
             {
                 final HashMap<String, String> map = parseArgs(args);
                 settings.read(map);
+                settings.validateMCPConfigFile();
             }
-            //TODO open GUI if no auto run was given
+
+            System.out.println("Picking runner...");
+            IRunner runner = null;
+
             if (settings.shouldAutoParse())
             {
-
+                runner = new AutoRunner();
             }
-            //Load command line version of the program
-            CommandLineRunner runner = new CommandLineRunner();
-            runner.run();
+            else
+            {
+                //TODO open GUI if possible
+                runner = new CommandLineRunner();
+            }
+
+            if(runner != null)
+            {
+                runner.run(settings);
+            }
         }
         catch (Exception e)
         {
             e.printStackTrace();
             //TODO save error to log
         }
+        System.out.println("Exiting...");
     }
 
     /**
@@ -68,23 +83,25 @@ public final class MCErrorLogUtil
                 {
                     String[] split = lastArg.split("=");
                     lastArg = split[0];
-                    map.put(lastArg, split[1]);
+                    map.put(lastArg, split[1].replace("\\\"", ""));
                     continue;
                 }
                 map.put(lastArg, null);
             }
-
-            //Store arg value, or append value
-            String v = map.get(lastArg);
-            if (v == null)
-            {
-                v = string;
-            }
             else
             {
-                v += "," + string;
+                //Store arg value, or append value
+                String v = map.get(lastArg);
+                if (v == null)
+                {
+                    v = string;
+                }
+                else
+                {
+                    v += "," + string;
+                }
+                map.put(lastArg, v);
             }
-            map.put(lastArg, v);
         }
         return map;
     }

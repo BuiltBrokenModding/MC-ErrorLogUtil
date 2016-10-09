@@ -3,7 +3,9 @@ package com.builtbroken.mc.util.runner;
 import com.builtbroken.mc.util.data.Settings;
 import com.builtbroken.mc.util.parser.LogParser;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 
 /**
  * Strait forward runner with minimal user input
@@ -41,19 +43,33 @@ public class AutoRunner extends Runner
 
                     System.out.println("Editing file");
                     parser.replaceSRG(mcpData);
-
                     System.out.println("\tEdited " + parser.linesEdited + " lines");
                     System.out.println("\tReplaced " + parser.stringsReplaced + " entries");
+
                     try
                     {
                         System.out.println("Saving edited file to " + settings.saveFile);
                         parser.save(settings.saveFile);
-                        System.out.println("Done...");
                     }
                     catch (IOException e)
                     {
                         throw new RuntimeException("Failed to save file correctly!", e);
                     }
+                    try
+                    {
+                        if(!settings.logDirectory.exists())
+                        {
+                            settings.logDirectory.mkdirs();
+                        }
+                        File logFile = new File(settings.logDirectory, "ParseData-" + settings.saveFile.getName() + "-" + new Date().toString().replace(":", " ") + ".log");
+                        System.out.println("Saving log data " + logFile);
+                        parser.saveLog(logFile);
+                    }
+                    catch (IOException e)
+                    {
+                        throw new RuntimeException("Failed to save file correctly!", e);
+                    }
+                    System.out.println("Done...");
                 }
                 else
                 {
