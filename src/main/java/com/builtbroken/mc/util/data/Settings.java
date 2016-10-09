@@ -12,16 +12,28 @@ import java.util.HashMap;
 public final class Settings
 {
     /** Folder to do all actions inside, root folder */
-    public File runPath = new File("");
+    public File runDirectory = new File("");
     /** File to read from */
     public File readFile = null;
     /** File to save to */
     public File saveFile = null;
-    /** File containing SRG to read-able names */
-    public File mcpConfigFile = null;
+    /** File containing method translations */
+    public File mcpMethodsFile = null;
+    /** File containing field translations */
+    public File mcpFieldsFile = null;
+    /** MCP config folder */
+    private File mcpConfigDirectory = null;
+
 
     /** Do we auto run after getting all needed data? */
     public boolean autoRun = false;
+    /** Should we override the save file? */
+    public boolean overrideSave = false;
+
+    private boolean hasValidMCPConfig = false;
+    private boolean hasValidatedMCPConfig = false;
+    private boolean hasMethodsFile = false;
+    private boolean hasFieldsFile = false;
 
     /**
      * Reads the passed in argument map and applies all valid args
@@ -32,35 +44,30 @@ public final class Settings
     {
         if (map.containsKey("runPath"))
         {
-            runPath = getFile(runPath, map.get("runPath"));
-            if (!runPath.isDirectory())
+            runDirectory = parseFile(runDirectory, map.get("runPath"));
+            if (!runDirectory.isDirectory())
             {
-                throw new IllegalArgumentException("Invalid run direction: " + runPath);
+                throw new IllegalArgumentException("Invalid run direction: " + runDirectory);
             }
         }
 
         if (map.containsKey("loadPath"))
         {
-            readFile = getFile(runPath, map.get("readPath"));
-            if (!runPath.exists())
+            readFile = parseFile(runDirectory, map.get("readPath"));
+            if (!runDirectory.exists())
             {
-                throw new IllegalArgumentException("Invalid read path: " + runPath);
+                throw new IllegalArgumentException("Invalid read path: " + runDirectory);
             }
         }
 
         if (map.containsKey("savePath"))
         {
-            saveFile = getFile(runPath, map.get("savePath"));
+            saveFile = parseFile(runDirectory, map.get("savePath"));
         }
 
         if (map.containsKey("mcpConfigFolder"))
         {
-            mcpConfigFile = getFile(runPath, map.get("mcpConfigFolder"));
-            if (!mcpConfigFile.isDirectory() || !runPath.exists())
-            {
-                throw new IllegalArgumentException("Invalid mcp config folder: " + runPath);
-            }
-            //TODO validate the folder contains the needed files
+            setMcpConfigDirectory(parseFile(runDirectory, map.get("mcpConfigFolder")));
         }
 
         if (map.containsKey("overrideSave"))
@@ -75,13 +82,23 @@ public final class Settings
     }
 
     /**
+     * Parses a string into a file path
+     * @param value - file path
+     * @return file
+     */
+    public File parseFile(String value)
+    {
+        return parseFile(runDirectory, value);
+    }
+
+    /**
      * Used to parse a string as a file path
      *
      * @param root  - root folder of the program
      * @param value - string passed into the program
      * @return new file path
      */
-    private static File getFile(File root, String value)
+    private File parseFile(File root, String value)
     {
         if (value.startsWith(File.pathSeparator))
         {
@@ -125,11 +142,52 @@ public final class Settings
 
     public boolean hasValidMCPConfigs()
     {
-        return mcpConfigFile != null && mcpConfigFile.exists();
+        if(!hasValidatedMCPConfig)
+        {
+            validateMCPConfigFile();
+        }
+        return getMcpConfigDirectory() != null && getMcpConfigDirectory().exists() && hasValidMCPConfig;
     }
 
     public boolean hasValidSaveFile()
     {
-        return saveFile != null && !saveFile.exists();
+        return saveFile != null && (!saveFile.exists() || overrideSave);
+    }
+
+    public void validateMCPConfigFile()
+    {
+        if(mcpConfigDirectory != null && mcpConfigDirectory.exists())
+        {
+            mcpMethodsFile = new File(mcpConfigDirectory, "methods.csv");
+            mcpFieldsFile = new File(mcpConfigDirectory, "fields.csv");
+
+            //TODO do better validation of files
+            hasMethodsFile = mcpMethodsFile.exists();
+            hasFieldsFile = mcpFieldsFile.exists();
+            hasValidMCPConfig = hasMethodsFile && hasFieldsFile;
+            hasValidatedMCPConfig = true;
+        }
+    }
+
+    /** File containing SRG to read-able names */
+    public File getMcpConfigDirectory()
+    {
+        return mcpConfigDirectory;
+    }
+
+    /**
+     * Sets the MCP config file and resets any data attached to said file
+     * @param mcpConfigDirectory - file
+     */
+    public void setMcpConfigDirectory(File mcpConfigDirectory)
+    {
+        this.mcpConfigDirectory = mcpConfigDirectory;
+
+        //Reset data that was dependent on that file
+        hasValidatedMCPConfig = true;
+        hasFieldsFile = false;
+        hasMethodsFile = false;
+        mcpMethodsFile = null;
+        mcpFieldsFile = null;
     }
 }

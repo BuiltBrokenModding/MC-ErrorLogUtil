@@ -29,25 +29,43 @@ public class CommandLineRunner extends Runner
             if(!settings.hasValidMCPConfigs())
             {
                 //Get read file
-                System.out.println("Enter mcp configs:");
-                String s = scan.next();
+                boolean tryAgain = true;
+                while(tryAgain)
+                {
+                    //Get file
+                    System.out.println("Enter mcp configs:");
+                    settings.setMcpConfigDirectory(settings.parseFile(scan.next()));
+                    settings.validateMCPConfigFile();
+
+                    //Validate
+                    if(settings.hasValidMCPConfigs())
+                    {
+                        break;
+                    }
+
+                    //Tell user it was wrong and ask if the user wants to try again
+                    System.out.println("\tInvalid config file try again? [Y/N]");
+                    String answer = scan.next().toLowerCase();
+                    tryAgain = answer.equals("y") || answer.equals("n");
+                }
             }
 
             if(!settings.hasReadFile())
             {
                 //Get read file
                 System.out.println("Enter read path:");
-                String s = scan.next();
+                settings.readFile = settings.parseFile(scan.next());
             }
 
             if(!settings.hasValidSaveFile())
             {
                 //Get read file
                 System.out.println("Enter save path:");
-                String s = scan.next();
+                settings.saveFile = settings.parseFile(scan.next());
             }
         }
         System.out.println("Processing needed data....");
+        loadMCPData();
         //TODO process file
         System.out.println("Processing file....");
         //TODO save file
