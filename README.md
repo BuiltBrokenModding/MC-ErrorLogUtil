@@ -10,9 +10,13 @@ The auto runner it the quickest way to use the app. All you need to do is provid
 -runPath=Folder to work in  - optional, defaults to user.dir
 
 -loadPath=ReadFileName   - start with ./ for relitave path, file that will be processed
+
 -savePath=SaveFileName   - start with ./ for relitave path, save location
+
 -mcpConfigFolder=FolderName - start with ./ for relitave path, MCP confi containing methods.csv & fields.csv
+
 -overrideSave
+
 -autoRun
 
 ##CMD Runner[WIP]
