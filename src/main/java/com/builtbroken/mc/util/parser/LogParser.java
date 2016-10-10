@@ -85,12 +85,12 @@ public class LogParser
 
                 String entry = line.substring(index, line.indexOf("("));
                 String convert = data.convertSrgMethod(entry);
-                if(!entry.equals(convert))
+                if (!entry.equals(convert))
                 {
                     stringsReplaced++;
                     editedLine = editedLine.replace(entry, convert);
                 }
-                else if(!unknownEntries.contains(line))
+                else if (!unknownEntries.contains(line))
                 {
                     unknownEntries.add(line);
                 }
@@ -99,6 +99,51 @@ public class LogParser
                 {
                     linesEdited++;
                     it.set(editedLine);
+                }
+            }
+        }
+    }
+
+    /**
+     * More or less this separates method call
+     * chains that exit the same package
+     * set in order to improve read-ability
+     */
+    public void seperateBreaksInMethodChains()
+    {
+        ListIterator<String> it = lines.listIterator();
+        String packName = null;
+        while (it.hasNext())
+        {
+            final String originalLine = it.next();
+            String line = originalLine.trim(); //Remove leading spaces
+            if (line.startsWith("at") && line.contains(".")) //Only parse log lines
+            {
+                line = line.replaceFirst("at", "").trim(); //Remove 'at'
+                if (line.startsWith("net.minecraftforge"))
+                {
+                    line = "net.minecraftforge";
+                    //TODO get next .
+                }
+                else if (line.startsWith("net.minecraft"))
+                {
+                    line = "net.minecraft";
+                    //TODO get next .
+                }
+                else
+                {
+                    line = line.substring(0, line.indexOf(".")); //get package name
+                }
+                if (packName == null)
+                {
+                    packName = line;
+                }
+                else if (!line.equals(packName))
+                {
+                    packName = line;
+                    it.previous(); //Move backwards
+                    it.add("-------------------------------------"); //Place line before current line
+                    it.next(); //Move forwards again to current line
                 }
             }
         }

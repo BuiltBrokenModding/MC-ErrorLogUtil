@@ -41,11 +41,13 @@ public class AutoRunner extends Runner
                     System.out.println("Reading file from " + settings.readFile);
                     parser.readFile();
 
-                    System.out.println("Editing file");
+                    System.out.println("Replacing SRG");
                     parser.replaceSRG(mcpData);
                     System.out.println("\tEdited " + parser.linesEdited + " lines");
                     System.out.println("\tReplaced " + parser.stringsReplaced + " entries");
 
+                    System.out.println("Segmenting method chains");
+                    parser.seperateBreaksInMethodChains();
                     try
                     {
                         System.out.println("Saving edited file to " + settings.saveFile);

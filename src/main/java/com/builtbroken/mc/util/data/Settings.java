@@ -44,6 +44,18 @@ public final class Settings
      */
     public void read(HashMap<String, String> map)
     {
+        //General settings
+        if (map.containsKey("overrideSave"))
+        {
+            overrideSave = isTrue(map.get("overrideSave"));
+        }
+
+        if (map.containsKey("autoRun"))
+        {
+            autoRun = isTrue(map.get("autoRun"));
+        }
+
+        //File path settings
         if (map.containsKey("runPath"))
         {
             runDirectory = parseFile(runDirectory, map.get("runPath"));
@@ -71,20 +83,15 @@ public final class Settings
         {
             saveFile = parseFile(runDirectory, map.get("savePath"));
         }
+        else if(autoRun)
+        {
+            String name = readFile.getName();
+            saveFile = new File(readFile.getParent(), name.substring(0, name.lastIndexOf(".")) + "-PARSED" + name.substring(name.lastIndexOf("."), name.length()));
+        }
 
         if (map.containsKey("mcpConfigFolder"))
         {
             setMcpConfigDirectory(parseFile(runDirectory, map.get("mcpConfigFolder")));
-        }
-
-        if (map.containsKey("overrideSave"))
-        {
-            overrideSave = isTrue(map.get("overrideSave"));
-        }
-
-        if (map.containsKey("autoRun"))
-        {
-            autoRun = isTrue(map.get("autoRun"));
         }
     }
 
